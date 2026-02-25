@@ -1,12 +1,6 @@
 import json
 
-
 class MessageParser:
-    """
-    Responsabilidad única: parsear y validar JSON entrante del WebSocket.
-    Si el mensaje es inválido, lanza ValueError con un mensaje claro.
-    """
-
     VALID_TYPES = {"CREATE_POLL", "JOIN_POLL", "VOTE"}
 
     def parse(self, raw_message: str) -> dict:

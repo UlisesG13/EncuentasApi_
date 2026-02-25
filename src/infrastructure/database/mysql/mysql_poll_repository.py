@@ -6,9 +6,6 @@ from src.infrastructure.database.database import get_pool
 
 class MySQLPollRepository(IPollRepository):
 
-
-    # ── GUARDAR ENCUESTA NUEVA ────────────────────────────────────
-
     async def save(self, poll: Poll) -> Poll:
         pool = get_pool()
 
@@ -17,13 +14,11 @@ class MySQLPollRepository(IPollRepository):
                 try:
                     await conn.begin()
 
-                    # 1. Insertar encuesta
                     await cur.execute(
                         "INSERT INTO polls (id, question, active) VALUES (%s, %s, %s)",
                         (poll.id, poll.question, True)
                     )
 
-                    # 2. Insertar cada opción
                     for i, option_text in enumerate(poll.options):
                         await cur.execute(
                             "INSERT INTO options (poll_id, text, position) VALUES (%s, %s, %s)",
@@ -37,10 +32,7 @@ class MySQLPollRepository(IPollRepository):
                     await conn.rollback()
                     raise RuntimeError(f"Error guardando encuesta: {e}") from e
 
-        # Retornar el estado fresco desde la DB
         return await self.find_by_id(poll.id)
-
-    # ── BUSCAR POR ID ─────────────────────────────────────────────
 
     async def find_by_id(self, poll_id: str) -> Poll | None:
         pool = get_pool()
@@ -48,7 +40,6 @@ class MySQLPollRepository(IPollRepository):
         async with pool.acquire() as conn:
             async with conn.cursor(aiomysql.DictCursor) as cur:
 
-                # 1. Datos de la encuesta
                 await cur.execute(
                     "SELECT id, question, active FROM polls WHERE id = %s",
                     (poll_id,)
@@ -58,7 +49,6 @@ class MySQLPollRepository(IPollRepository):
                 if not poll_row:
                     return None
 
-                # 2. Opciones ordenadas por posición
                 await cur.execute(
                     "SELECT id, text, position FROM options "
                     "WHERE poll_id = %s ORDER BY position",
@@ -66,7 +56,6 @@ class MySQLPollRepository(IPollRepository):
                 )
                 option_rows = await cur.fetchall()
 
-                # 3. Conteo de votos por opción
                 await cur.execute(
                     """
                     SELECT o.position, COUNT(v.id) AS vote_count
@@ -80,7 +69,6 @@ class MySQLPollRepository(IPollRepository):
                 )
                 vote_rows = await cur.fetchall()
 
-        # 4. Construir la entidad del dominio
         options = [row["text"] for row in option_rows]
         votes   = [0] * len(options)
 
@@ -95,8 +83,6 @@ class MySQLPollRepository(IPollRepository):
             active   = bool(poll_row["active"]),
         )
 
-    # ── REGISTRAR VOTO ────────────────────────────────────────────
-
     async def register_vote(self, poll_id: str, option_index: int) -> Poll:
         pool = get_pool()
 
@@ -105,7 +91,6 @@ class MySQLPollRepository(IPollRepository):
                 try:
                     await conn.begin()
 
-                    # Obtener el id real de la opción por su posición
                     await cur.execute(
                         "SELECT id FROM options WHERE poll_id = %s AND position = %s",
                         (poll_id, option_index)
@@ -117,7 +102,6 @@ class MySQLPollRepository(IPollRepository):
                             f"Opción {option_index} no existe en encuesta {poll_id}"
                         )
 
-                    # Insertar el voto
                     await cur.execute(
                         "INSERT INTO votes (poll_id, option_id) VALUES (%s, %s)",
                         (poll_id, option_row["id"])
@@ -130,5 +114,4 @@ class MySQLPollRepository(IPollRepository):
                     await conn.rollback()
                     raise RuntimeError(f"Error registrando voto: {e}") from e
 
-        # Retornar el poll con los conteos actualizados
         return await self.find_by_id(poll_id)

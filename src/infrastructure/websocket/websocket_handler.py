@@ -1,13 +1,10 @@
 import json
 import asyncio
-
 from fastapi import WebSocket, WebSocketDisconnect
-
 from src.application.usecase.create_poll_usecase import CreatePollUseCase
 from src.application.usecase.get_poll_usecase    import GetPollUseCase
 from src.application.usecase.vote_usecase        import VoteUseCase
 from src.infrastructure.websocket.message_parser import MessageParser
-
 
 class WebSocketHandler:
 
@@ -22,10 +19,7 @@ class WebSocketHandler:
         self._vote        = vote_usecase
         self._parser      = MessageParser()
 
-        # Salas: { poll_id: set[WebSocket] }
         self._rooms: dict[str, set] = {}
-
-    # ── Punto de entrada para cada conexión nueva ─────────────────
 
     async def handle_connection(self, websocket: WebSocket) -> None:
         await websocket.accept()
@@ -46,8 +40,6 @@ class WebSocketHandler:
             self._leave_room(websocket, poll_id_ref["value"])
             print(f"[WS] Conexión cerrada: {websocket.client}")
 
-    # ── Router de mensajes ────────────────────────────────────────
-
     async def _handle_message(self, websocket, raw_message: str, poll_id_ref: dict) -> None:
         try:
             data = self._parser.parse(raw_message)
@@ -63,8 +55,6 @@ class WebSocketHandler:
             await self._handle_join_poll(websocket, data, poll_id_ref)
         elif msg_type == "VOTE":
             await self._handle_vote(websocket, data)
-
-    # ── Handlers individuales ─────────────────────────────────────
 
     async def _handle_create_poll(self, websocket, data: dict, poll_id_ref: dict) -> None:
         try:
@@ -115,8 +105,6 @@ class WebSocketHandler:
 
         except (ValueError, RuntimeError) as e:
             await self._send_error(websocket, str(e))
-
-    # ── Gestión de salas ──────────────────────────────────────────
 
     def _join_room(self, websocket, poll_id: str) -> None:
         if poll_id not in self._rooms:

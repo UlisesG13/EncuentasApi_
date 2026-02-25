@@ -3,10 +3,6 @@ from src.domain.port.poll_repository import IPollRepository
 
 
 class GetPollUseCase:
-    """
-    Caso de uso: Obtener el estado actual de una encuesta.
-    Se usa cuando un cliente se une a una sala existente.
-    """
 
     def __init__(self, repository: IPollRepository) -> None:
         self._repository = repository

@@ -1,14 +1,8 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-
-
 @dataclass
+
 class Poll:
-    """
-    Entidad de dominio pura.
-    No conoce MySQL, WebSockets, ni ningún framework.
-    Toda la lógica de negocio vive aquí.
-    """
     id: str
     question: str
     options: list[str]
@@ -17,11 +11,8 @@ class Poll:
     created_at: datetime = field(default_factory=datetime.now)
 
     def __post_init__(self):
-        # Si no se pasaron votos, inicializar en cero para cada opción
         if not self.votes:
             self.votes = [0] * len(self.options)
-
-    # ── Lógica de negocio ─────────────────────────────────────────
 
     def add_vote(self, option_index: int) -> None:
         """Registra un voto. Lanza error si el índice es inválido."""

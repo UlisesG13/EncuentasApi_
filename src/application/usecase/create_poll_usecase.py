@@ -9,7 +9,6 @@ class CreatePollUseCase:
         self._repository = repository
 
     async def execute(self, question: str, options: list[str]) -> Poll:
-        # ── Validaciones de negocio ───────────────────────────────
         if not question or not question.strip():
             raise ValueError("La pregunta no puede estar vacía.")
 
@@ -20,8 +19,7 @@ class CreatePollUseCase:
         if len(options) > 6:
             raise ValueError("Máximo 6 opciones por encuesta.")
 
-        # ── Crear entidad y persistir ─────────────────────────────
-        poll_id = uuid.uuid4().hex[:6].upper()  # ej: "ABC123"
+        poll_id = uuid.uuid4().hex[:6].upper()
         poll    = Poll(id=poll_id, question=question, options=options)
 
         return await self._repository.save(poll)

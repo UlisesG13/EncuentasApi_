@@ -4,15 +4,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Pool global — se inicializa una sola vez en el arranque
 _pool: aiomysql.Pool | None = None
 
 
 async def create_pool() -> aiomysql.Pool:
-    """
-    Crea el pool de conexiones async a MySQL.
-    Se llama una sola vez desde dependencies.py al arrancar el servidor.
-    """
     global _pool
     _pool = await aiomysql.create_pool(
         host     = os.getenv("DB_HOST", "localhost"),

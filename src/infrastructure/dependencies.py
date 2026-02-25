@@ -7,15 +7,12 @@ from src.infrastructure.websocket.websocket_handler           import WebSocketHa
 
 def build_handler() -> WebSocketHandler:
   
-    # 1. Adaptador de salida (implementación concreta del puerto)
     repository = MySQLPollRepository()
 
-    # 2. Casos de uso (reciben el repositorio vía el contrato IPollRepository)
     create_poll_usecase = CreatePollUseCase(repository)
     get_poll_usecase    = GetPollUseCase(repository)
     vote_usecase        = VoteUseCase(repository)
 
-    # 3. Adaptador de entrada (recibe los casos de uso)
     handler = WebSocketHandler(
         create_poll_usecase = create_poll_usecase,
         get_poll_usecase    = get_poll_usecase,
