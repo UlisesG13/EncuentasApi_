@@ -13,6 +13,10 @@ class IPollRepository(Protocol):
         """Busca una encuesta por su código. Retorna None si no existe."""
         ...
 
+    async def find_all(self) -> list[Poll]:
+        """Obtiene todas las encuestas disponibles."""
+        ...
+
     async def register_vote(self, poll_id: str, option_index: int) -> Poll:
         """Registra un voto y retorna la encuesta con conteos actualizados."""
         ...
