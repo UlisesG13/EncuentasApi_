@@ -1,11 +1,13 @@
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket
+from fastapi.middleware.cors import CORSMiddleware  
 from dotenv import load_dotenv
 from src.infrastructure.database.database import create_pool, close_pool
 from src.infrastructure.dependencies       import build_handler
 from src.infrastructure.routes.health      import router as health_router
 from src.infrastructure.routes.polls       import create_polls_router
+
 
 load_dotenv()
 
@@ -36,6 +38,16 @@ def create_app() -> FastAPI:
         version     = "1.0.0",
         lifespan    = lifespan,
     )
+
+    # ===== AGREGAR CORS MIDDLEWARE =====
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Permite todos los orígenes. Para producción, especifica dominios
+        allow_credentials=True,
+        allow_methods=["*"],  # Permite todos los métodos (GET, POST, PUT, DELETE, etc.)
+        allow_headers=["*"],  # Permite todos los headers
+    )
+    # ===================================
 
     app.include_router(health_router)
     app.include_router(create_polls_router())
